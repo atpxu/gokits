@@ -28,6 +28,8 @@ func TestGetInstance(t *testing.T) {
 	// 判断两个实例是否相同
 	if instance1 != instance2 {
 		t.Errorf("GetInstance() returned different instances")
+	} else {
+		t.Logf("GetInstance() returned same instance")
 	}
 }
 
@@ -56,5 +58,7 @@ func TestSingletonConcurrency(t *testing.T) {
 	// 判断两个实例是否相同
 	if instance1 != instance2 {
 		t.Errorf("GetInstance() returned different instances in concurrent execution")
+	} else {
+		t.Logf("GetInstance() returned same instance")
 	}
 }
