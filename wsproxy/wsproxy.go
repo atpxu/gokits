@@ -37,6 +37,7 @@ func loadConfig(filePath string) (*Config, error) {
 
 func proxyWebSocket(w http.ResponseWriter, r *http.Request, targetURL string) {
 	// 连接到目标 WebSocket 服务
+	logger.Debug("连接到目标 WebSocket 服务:", targetURL)
 	u, _ := url.Parse(targetURL)
 	targetConn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
