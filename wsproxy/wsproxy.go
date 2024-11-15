@@ -25,7 +25,11 @@ func loadConfig(filePath string) (*Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("无法打开配置文件: %v", err)
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+		}
+	}(file)
 
 	var config Config
 	decoder := json.NewDecoder(file)
@@ -45,7 +49,11 @@ func proxyWebSocket(w http.ResponseWriter, r *http.Request, targetURL string) {
 		http.Error(w, "无法连接目标服务", http.StatusInternalServerError)
 		return
 	}
-	defer targetConn.Close()
+	defer func(targetConn *websocket.Conn) {
+		err2 := targetConn.Close()
+		if err2 != nil {
+		}
+	}(targetConn)
 
 	// 将 HTTP 请求升级为 WebSocket
 	upgrader := websocket.Upgrader{
@@ -56,28 +64,40 @@ func proxyWebSocket(w http.ResponseWriter, r *http.Request, targetURL string) {
 		logger.Error("升级客户端连接失败:", err)
 		return
 	}
-	defer clientConn.Close()
+	defer func(clientConn *websocket.Conn) {
+		err2 := clientConn.Close()
+		if err2 != nil {
+		}
+	}(clientConn)
 
 	// 开始转发数据
 	done := make(chan struct{})
 	go func() {
 		defer close(done)
 		for {
-			messageType, message, err := targetConn.ReadMessage()
-			if err != nil {
+			messageType, message, err2 := targetConn.ReadMessage()
+			if err2 != nil {
 				logger.Error("从目标读取数据出错:", err)
 				return
 			}
-			clientConn.WriteMessage(messageType, message)
+			err2 = clientConn.WriteMessage(messageType, message)
+			if err2 != nil {
+				logger.Error("向目标端写入数据出错:", err)
+				return
+			}
 		}
 	}()
 	for {
-		messageType, message, err := clientConn.ReadMessage()
-		if err != nil {
+		messageType, message, err2 := clientConn.ReadMessage()
+		if err2 != nil {
 			logger.Error("从客户端读取数据出错:", err)
 			return
 		}
-		targetConn.WriteMessage(messageType, message)
+		err2 = targetConn.WriteMessage(messageType, message)
+		if err2 != nil {
+			logger.Error("向客户端写入数据出错:", err)
+			return
+		}
 	}
 }
 
