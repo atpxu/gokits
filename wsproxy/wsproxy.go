@@ -127,6 +127,7 @@ func main() {
 	})
 
 	// 启动服务器
+	// Notice, accept ws:// only, wss:// is not supported yet
 	address := fmt.Sprintf(":%d", config.ListenPort)
 	logger.Infof("WebSocket 代理启动，监听端口 %s", address)
 	logger.Fatal(http.ListenAndServe(address, nil))
