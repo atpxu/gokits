@@ -1,4 +1,4 @@
-package wsproxy
+package main
 
 import (
 	"encoding/json"
