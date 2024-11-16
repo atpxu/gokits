@@ -33,8 +33,11 @@ func loadConfig(filePath string) (*Config, error) {
 
 	var config Config
 	decoder := json.NewDecoder(file)
-	if err := decoder.Decode(&config); err != nil {
+	if err2 := decoder.Decode(&config); err2 != nil {
 		return nil, fmt.Errorf("解析配置文件失败: %v", err)
+	}
+	for path, targetURL := range config.Services {
+		logger.Debugf("ws代理: %s -> %s\n", path, targetURL)
 	}
 	return &config, nil
 }
