@@ -118,15 +118,27 @@ func main() {
 
 	// 配置 WebSocket 服务的路由
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		path := strings.TrimSuffix(r.URL.Path, "/")
-		targetURL, exists := config.Services[path]
+		// 从请求路径中提取第一层路径和后续路径
+		fullPath := strings.TrimPrefix(r.URL.Path, "/")
+		parts := strings.SplitN(fullPath, "/", 2)
+
+		basePath := "/" + parts[0] // 第一层路径
+		remainingPath := ""
+		if len(parts) > 1 {
+			remainingPath = "/" + parts[1] // 剩余路径
+		}
+
+		targetURL, exists := config.Services[basePath]
 		if !exists {
 			http.Error(w, "服务未找到", http.StatusNotFound)
+			logger.Error("服务未找到:", basePath)
 			return
 		}
 
-		logger.Debugf("代理请求: %s -> %s\n", path, targetURL)
-		proxyWebSocket(w, r, targetURL)
+		// 拼接目标 URL，包含剩余路径
+		finalTargetURL := targetURL + remainingPath
+		logger.Debugf("代理请求: %s -> %s\n", r.URL.Path, finalTargetURL)
+		proxyWebSocket(w, r, finalTargetURL)
 	})
 
 	// 启动服务器
