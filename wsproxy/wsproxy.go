@@ -37,7 +37,7 @@ func loadConfig(filePath string) (*Config, error) {
 		return nil, fmt.Errorf("解析配置文件失败: %v", err)
 	}
 	for path, targetURL := range config.Services {
-		logger.Debugf("ws代理: %s -> %s\n", path, targetURL)
+		logger.Debugf("ws代理: %s -> %s", path, targetURL)
 	}
 	return &config, nil
 }
