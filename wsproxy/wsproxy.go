@@ -18,7 +18,7 @@ type Config struct {
 	Services   map[string]string `json:"services"`
 }
 
-var logger = log.GetLogger("wsproxy")
+var logger = log.GetStdLogger("wsproxy")
 
 func loadConfig(filePath string) (*Config, error) {
 	file, err := os.Open(filePath)

@@ -68,8 +68,8 @@ func initLogger(config loggerConfig) *logrus.Logger {
 	return logger
 }
 
-// getConfigedLogger 根据配置获取或创建 Logger 实例
-func getConfigedLogger(config loggerConfig) *logrus.Logger {
+// GetLogger 根据配置获取或创建 Logger 实例
+func GetLogger(config loggerConfig) *logrus.Logger {
 	// 第一次无锁检查
 	if logger, exists := logInstances[config.name]; exists {
 		return logger
@@ -86,16 +86,18 @@ func getConfigedLogger(config loggerConfig) *logrus.Logger {
 	return initLogger(config)
 }
 
-func GetLogger(name string) *logrus.Logger {
-	return getConfigedLogger(loggerConfig{
+// GetStdLogger GetLogger 创建一个 Logger 实例，输出到 stdout
+func GetStdLogger(name string) *logrus.Logger {
+	return GetLogger(loggerConfig{
 		name:  name,
 		level: logrus.DebugLevel,
 		dest:  "stdout",
 	})
 }
 
+// GetFileLogger 创建一个输出到文件的 Logger 实例
 func GetFileLogger(name string, filePath string, alsoToStdout bool) *logrus.Logger {
-	return getConfigedLogger(loggerConfig{
+	return GetLogger(loggerConfig{
 		name:         name,
 		level:        logrus.DebugLevel,
 		dest:         filePath,
