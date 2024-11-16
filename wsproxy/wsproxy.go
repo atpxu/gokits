@@ -137,7 +137,7 @@ func main() {
 
 		// 拼接目标 URL，包含剩余路径
 		finalTargetURL := targetURL + remainingPath
-		logger.Debugf("代理请求: %s -> %s\n", r.URL.Path, finalTargetURL)
+		logger.Debugf("代理请求: %s -> %s", r.URL.Path, finalTargetURL)
 		proxyWebSocket(w, r, finalTargetURL)
 	})
 
