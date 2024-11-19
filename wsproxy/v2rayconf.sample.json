@@ -1,0 +1,271 @@
+// Config file of V2Ray. This file follows standard JSON format, with comments support.
+// Uncomment entries below to satisfy your needs. Also read our manual for more detail at
+// https://www.v2fly.org/
+{
+  "log": {
+    // By default, V2Ray writes access log to stdout.
+    "access": "/etc/v2ray/log/access.log",
+    // By default, V2Ray write error log to stdout.
+    "error": "/etc/v2ray/log/error.log",
+    // Log level, one of "debug", "info", "warning", "error", "none"
+    "loglevel": "warning"
+  },
+  "inbounds": [
+    // List of inbound proxy configurations.
+    {
+      // http proxy
+      "protocol": "http",
+      "port": 10809,
+      // 仅提供本地的http代理
+      "listen": "127.0.0.1",
+      "tag": "http-inbound"
+    },
+    {
+      // ss proxy
+      "protocol": "shadowsocks",
+      // 设置端口，可以选择任何未被占用的端口
+      "port": 18688,
+      "settings": {
+        // Shadowsocks 加密方式
+        "method": "aes-256-gcm",
+        // Shadowsocks 密码
+        "password": "custom_password",
+        // 支持 TCP 和 UDP
+        "network": "tcp,udp"
+      },
+      "tag": "ss-inbound"
+    },
+    {
+      // socks proxy
+      "protocol": "socks",
+      "port": 1080,
+      "listen": "127.0.0.1",
+      "tag": "socks-inbound",
+      // Settings of the protocol. Varies based on protocol.
+      "settings": {
+        // auth can be password/noauth
+        "auth": "password",
+        // when auth=password, required user/pass
+        "accounts": [
+          {
+            "user": "your_username",
+            "pass": "your_password"
+          }
+        ],
+        "udp": true,
+        "ip": "127.0.0.1"
+      },
+      // Enable sniffing on TCP connection.
+      "sniffing": {
+        "enabled": true,
+        "destOverride": [
+          "http",
+          "tls"
+        ]
+      }
+    },
+    {
+      // vmess proxy
+      "protocol": "vmess",
+      "tag": "vmess_inbound",
+      "port": 18686,
+      "settings": {
+        "clients": [
+          {
+            // 改成自定义的uuid
+            "id": "xxxxxx-c4f8-4e1f-8916-f3b1787307cb",
+            "alterId": 0
+          }
+        ]
+      }
+    }
+  ],
+  "outbounds": [
+    // List of outbound proxy configurations.
+    {
+      "tag": "tjhk",
+      "protocol": "trojan",
+      "settings": {
+        "servers": [
+          {
+            "address": "server_address",
+            "port": 465,
+            "password": "remote_password",
+            "allowInsecure": false,
+            "udp": true
+          }
+        ]
+      },
+      "streamSettings": {
+        // 网络类型，Trojan 只支持 TCP
+        "network": "tcp",
+        // 开启 TLS 加密
+        "security": "tls",
+        "tlsSettings": {
+          // TLS 服务器名称，通常与服务器地址相同
+          "serverName": "server_address",
+          // 是否允许不安全的证书
+          "allowInsecure": false
+        }
+      },
+      "mux": {
+        // 是否启用多路复用，根据需要设置
+        "enabled": false
+      }
+    },
+    {
+      "tag": "sssg",
+      "protocol": "shadowsocks",
+      "settings": {
+        "servers": [
+          {
+            "address": "sczx.bzlxzl.com",
+            "port": 57044,
+            "method": "chacha20-ietf-poly1305",
+            "password": "remote_password",
+            "udp": true
+          }
+        ]
+      },
+      "streamSettings": {
+        // 网络类型，Shadowsocks 支持 TCP 和 UDP
+        "network": "tcp"
+      },
+      "mux": {
+        // 是否启用多路复用，根据需要设置
+        "enabled": false
+      }
+    },
+    {
+      // Protocol name of the outbound proxy.
+      "protocol": "freedom",
+      // Settings of the protocol. Varies based on protocol.
+      "settings": {},
+      // Tag of the outbound. May be used for routing.
+      "tag": "direct"
+    },
+    {
+      "protocol": "blackhole",
+      "settings": {},
+      "tag": "blocked"
+    }
+  ],
+  // Transport is for global transport settings. If you have multiple transports with same settings
+  // (say mKCP), you may put it here, instead of in each individual inbound/outbounds.
+  //"transport": {},
+
+  // Routing controls how traffic from inbounds are sent to outbounds.
+  "routing": {
+    "domainStrategy": "IPOnDemand",
+    "rules": [
+      {
+        "type": "field",
+        "domain": [
+          "*.openai.com",
+          "*.bing.com",
+          "*.google.com"
+        ],
+        "outboundTag": "sssg"
+      },
+      {
+        "type": "field",
+        "domain": [
+          "*.github.com",
+          "*.github.io",
+          "*.twitter.com"
+        ],
+        "outboundTag": "tjhk"
+      },
+      {
+        // Blocks access to private IPs. Remove this if you want to access your router.
+        "type": "field",
+        "ip": [
+          "192.168.0.0/16",
+          "10.0.0.0/8"
+        ],
+        "outboundTag": "blocked"
+      },
+      {
+        // Blocks major ads.
+        "type": "field",
+        "domain": [
+          "geosite:category-ads"
+        ],
+        "outboundTag": "blocked"
+      },
+      {
+        "type": "field",
+        "network": "tcp,udp",
+        "outboundTag": "direct"
+      }
+    ]
+  },
+  // Dns settings for domain resolution.
+  "dns": {
+    // Static hosts, similar to hosts file.
+    "hosts": {
+      // Match v2fly.org to another domain on CloudFlare. This domain will be used when querying IPs for v2fly.org.
+      "domain:v2fly.org": "www.vicemc.net",
+      // The following settings help to eliminate DNS poisoning in mainland China.
+      // It is safe to comment these out if this is not the case for you.
+      "domain:github.io": "pages.github.com",
+      "domain:wikipedia.org": "www.wikimedia.org",
+      "domain:shadowsocks.org": "electronicsrealm.com"
+    },
+    "servers": [
+      "1.1.1.1",
+      {
+        "address": "114.114.114.114",
+        "port": 53,
+        // List of domains that use this DNS first.
+        "domains": [
+          "geosite:cn"
+        ]
+      },
+      "8.8.8.8",
+      "localhost"
+    ]
+  },
+  // Policy controls some internal behavior of how V2Ray handles connections.
+  // It may be on connection level by user levels in 'levels', or global settings in 'system.'
+  "policy": {
+    // Connection policys by user levels
+    "levels": {
+      "0": {
+        "uplinkOnly": 0,
+        "downlinkOnly": 0
+      }
+    },
+    "system": {
+      "statsInboundUplink": true,
+      "statsInboundDownlink": true,
+      "statsOutboundUplink": false,
+      "statsOutboundDownlink": false
+    },
+    "inboundTag": {
+      // 对于tag为ss的in-bounds，做了限速
+      "ss": {
+        // 上传限速为5MB/s
+        "uplinkCapacity": 5,
+        // 下载限速为5MB/s
+        "downlinkCapacity": 5
+      }
+    }
+  },
+  // Stats enables internal stats counter.
+  // This setting can be used together with Policy and Api.
+  //"stats":{},
+
+  // Api enables gRPC APIs for external programs to communicate with V2Ray instance.
+  //"api": {
+  //"tag": "api",
+  //"services": [
+  //  "HandlerService",
+  //  "LoggerService",
+  //  "StatsService"
+  //]
+  //},
+
+  // You may add other entries to the configuration, but they will not be recognized by V2Ray.
+  "other": {}
+}
